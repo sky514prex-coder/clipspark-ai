@@ -82,9 +82,9 @@ function Home() {
                 url={url}
                 onChange={setUrl}
                 onSubmit={handleSubmit}
-                status={status}
-                progress={progress}
-                error={error}
+                status="idle"
+                progress={0}
+                error={null}
               />
             </div>
           </div>
