@@ -13,15 +13,15 @@ interface Props {
 
 const STATUS_TEXT: Record<ProcessorStatus, string> = {
   idle: "Generate Clips",
-  validating: "Validating link…",
-  fetching: "Fetching video data…",
-  processing: "Processing with AI…",
-  ready: "Open in Studio",
-  error: "Try Again",
+  queued: "Queued…",
+  uploading: "Uploading to engine…",
+  processing: "Rendering with AI…",
+  completed: "Open Result",
+  failed: "Try Again",
 };
 
 export function UrlInput({ url, onChange, onSubmit, status, progress, error }: Props) {
-  const busy = status === "validating" || status === "fetching" || status === "processing";
+  const busy = status === "queued" || status === "uploading" || status === "processing";
 
   return (
     <motion.div
@@ -64,7 +64,7 @@ export function UrlInput({ url, onChange, onSubmit, status, progress, error }: P
         </button>
       </form>
 
-      {(busy || status === "ready") && (
+      {(busy || status === "completed") && (
         <div className="mt-4 px-2">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <motion.div
@@ -73,7 +73,10 @@ export function UrlInput({ url, onChange, onSubmit, status, progress, error }: P
               transition={{ ease: "easeOut" }}
             />
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">{STATUS_TEXT[status]}</p>
+          <p className="mt-2 flex justify-between text-xs text-muted-foreground">
+            <span>{STATUS_TEXT[status]}</span>
+            <span className="tabular-nums">{progress}%</span>
+          </p>
         </div>
       )}
 

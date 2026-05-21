@@ -42,16 +42,12 @@ function Home() {
   const { status, progress, error, process } = useVideoProcessor();
 
   const handleSubmit = async () => {
-    if (status === "ready") {
-      navigate({ to: "/dashboard", search: { url } });
-      return;
-    }
-    await process(url, DEFAULT_SETTINGS);
-    // On success, jump to studio
-    setTimeout(() => {
-      navigate({ to: "/dashboard", search: { url } });
-    }, 600);
+    // Send the user to the Studio where the real settings + preview live.
+    // The actual job is submitted from the dashboard with the user's settings.
+    navigate({ to: "/dashboard", search: { url } });
   };
+  void process; // hero submit just routes; real submission happens in /dashboard
+  void DEFAULT_SETTINGS;
 
   return (
     <div className="relative min-h-screen overflow-hidden">
