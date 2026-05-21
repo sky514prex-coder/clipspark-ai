@@ -29,7 +29,7 @@ export function VideoPreview({ video }: { video: ProcessedVideo | null }) {
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
-      a.download = `${video.title.replace(/\s+/g, "_")}.mp4`;
+      a.download = `cliprush_${video.jobId}.mp4`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -49,7 +49,7 @@ export function VideoPreview({ video }: { video: ProcessedVideo | null }) {
           <video
             ref={ref}
             src={video.url}
-            poster={video.thumbnail}
+            poster={video.thumbnail ?? undefined}
             muted={muted}
             playsInline
             className="h-full w-full object-contain"
@@ -79,8 +79,10 @@ export function VideoPreview({ video }: { video: ProcessedVideo | null }) {
             >
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </button>
-            <div className="flex-1 text-sm text-white/90">{video.title}</div>
-            <div className="text-xs text-white/60">{video.duration}s</div>
+            <div className="flex-1 truncate text-sm text-white/90">Job {video.jobId}</div>
+            {video.duration != null && (
+              <div className="text-xs text-white/60">{video.duration}s</div>
+            )}
           </div>
         )}
       </div>

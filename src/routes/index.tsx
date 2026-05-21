@@ -7,15 +7,6 @@ import { UrlInput } from "@/components/UrlInput";
 import { Features } from "@/components/Features";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Footer } from "@/components/Footer";
-import { useVideoProcessor, type ProcessorSettings } from "@/lib/useVideoProcessor";
-
-const DEFAULT_SETTINGS: ProcessorSettings = {
-  colorGrading: 65,
-  zoomIntensity: 40,
-  beatSync: true,
-  watermark: false,
-  subtitleStyle: "viral",
-};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,19 +30,12 @@ export const Route = createFileRoute("/")({
 function Home() {
   const [url, setUrl] = useState("");
   const navigate = useNavigate();
-  const { status, progress, error, process } = useVideoProcessor();
 
-  const handleSubmit = async () => {
-    if (status === "ready") {
-      navigate({ to: "/dashboard", search: { url } });
-      return;
-    }
-    await process(url, DEFAULT_SETTINGS);
-    // On success, jump to studio
-    setTimeout(() => {
-      navigate({ to: "/dashboard", search: { url } });
-    }, 600);
+  const handleSubmit = () => {
+    // Hero just routes into the Studio; real submission happens there with the user's settings.
+    navigate({ to: "/dashboard", search: { url } });
   };
+
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -98,9 +82,9 @@ function Home() {
                 url={url}
                 onChange={setUrl}
                 onSubmit={handleSubmit}
-                status={status}
-                progress={progress}
-                error={error}
+                status="idle"
+                progress={0}
+                error={null}
               />
             </div>
           </div>

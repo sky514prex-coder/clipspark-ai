@@ -37,7 +37,7 @@ function Dashboard() {
   });
 
   const { status, progress, error, video, process } = useVideoProcessor();
-  const busy = status === "validating" || status === "fetching" || status === "processing";
+  const busy = status === "queued" || status === "uploading" || status === "processing";
 
   return (
     <div className="relative min-h-screen">
