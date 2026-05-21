@@ -92,6 +92,51 @@ export type Database = {
         }
         Relationships: []
       }
+      video_jobs: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          error: string | null
+          id: string
+          progress: number
+          provider_job_id: string | null
+          settings: Json
+          status: string
+          thumbnail_url: string | null
+          tiktok_url: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          error?: string | null
+          id?: string
+          progress?: number
+          provider_job_id?: string | null
+          settings?: Json
+          status?: string
+          thumbnail_url?: string | null
+          tiktok_url: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          error?: string | null
+          id?: string
+          progress?: number
+          provider_job_id?: string | null
+          settings?: Json
+          status?: string
+          thumbnail_url?: string | null
+          tiktok_url?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
