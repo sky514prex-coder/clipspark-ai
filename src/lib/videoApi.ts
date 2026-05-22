@@ -139,12 +139,12 @@ export async function pollUntilDone(
   signal?: AbortSignal,
 ): Promise<JobResponse> {
   let delay = 1000;
-  // Hard timeout: 5 minutes (real renders can take a while).
-  const deadline = Date.now() + 5 * 60_000;
+  // Hard timeout: 15 minutes for real TikTok download, transcription, render, and upload.
+  const deadline = Date.now() + 15 * 60_000;
 
   while (true) {
     if (signal?.aborted) throw new Error("Aborted");
-    if (Date.now() > deadline) throw new Error("Render timed out after 5 minutes.");
+    if (Date.now() > deadline) throw new Error("Render timed out after 15 minutes.");
 
     const job = await pollJob(jobId, signal);
     onUpdate(job);
