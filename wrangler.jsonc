@@ -1,7 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "clipspark-ai",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "vars": {
+    "SUPABASE_URL": "https://qfhmymtqndfhdfngutro.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmaG15bXRxbmRmaGRmbmd1dHJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzU2NjAsImV4cCI6MjA5NDcxMTY2MH0.MZF6d8NYHZwbJPHJO3NWWSzPortSOyw1XOOc48aKo6Q",
+    "CODEWORDS_URL": "https://runtime.codewords.ai/run/cliprush_api_579b7a01"
+  }
 }
