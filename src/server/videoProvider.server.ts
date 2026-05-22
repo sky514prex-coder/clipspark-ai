@@ -21,7 +21,6 @@ export interface VideoProvider {
   status(jobId: string): Promise<JobResponse>;
 }
 
-const STUB_DURATION_MS = 8_000;
 const DEFAULT_CODEWORDS_URL = "https://runtime.codewords.ai/run/cliprush_api_579b7a01";
 
 function rowToJob(row: any): JobResponse {
