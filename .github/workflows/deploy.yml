@@ -22,21 +22,14 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Show build output
-        run: |
-          echo "=== .output ===" && ls -la .output/ 2>/dev/null || echo "(not found)"
-          echo "=== .vinxi ===" && ls -la .vinxi/ 2>/dev/null || echo "(not found)"
-          echo "=== dist ===" && ls -la dist/ 2>/dev/null || echo "(not found)"
-          echo "=== .cloudflare ===" && ls -la .cloudflare/ 2>/dev/null || echo "(not found)"
-
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           secrets: |
-            CODEWORDS_API_KEY
             SUPABASE_SERVICE_ROLE_KEY
+            GITHUB_TOKEN
         env:
-          CODEWORDS_API_KEY: ${{ secrets.CODEWORDS_API_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
