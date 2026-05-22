@@ -4,12 +4,12 @@
  * ============================================================================
  *
  * Jobs are stored in `public.video_jobs` via the service-role admin client.
- * The stub still simulates progress, but every read/write now goes through
- * Supabase so jobs survive reloads, restarts, and multiple worker instances.
+ * CodeWords owns the actual render pipeline and writes status/progress/output
+ * back into Supabase. This adapter no longer simulates completion.
  *
- * To switch to a real engine (Shotstack / Creatomate / Replicate):
- *   1. Implement submit() to call the provider API and store provider_job_id.
- *   2. Implement status() to fetch the provider status and update the row.
+ * If CODEWORDS_API_KEY is available in the server environment, this adapter can
+ * call the public CodeWords API directly. Otherwise it queues jobs in Supabase
+ * for the deployed backend worker to pick up and polls the persisted row.
  * ============================================================================
  */
 
@@ -22,6 +22,7 @@ export interface VideoProvider {
 }
 
 const STUB_DURATION_MS = 8_000;
+const DEFAULT_CODEWORDS_URL = "https://runtime.codewords.ai/run/cliprush_api_579b7a01";
 
 function rowToJob(row: any): JobResponse {
   return {
@@ -35,8 +36,48 @@ function rowToJob(row: any): JobResponse {
   };
 }
 
-const stubProvider: VideoProvider = {
+function normalizeJob(job: Partial<JobResponse> & { id?: string }): JobResponse {
+  return {
+    job_id: job.job_id ?? job.id ?? "",
+    status: (job.status ?? "queued") as JobStatus,
+    progress: Math.max(0, Math.min(100, Number(job.progress ?? 0))),
+    video_url: job.video_url ?? null,
+    thumbnail_url: job.thumbnail_url ?? null,
+    duration_seconds: job.duration_seconds ?? null,
+    error: job.error ?? null,
+  };
+}
+
+async function callCodewords(path: string, init?: RequestInit): Promise<JobResponse> {
+  const apiKey = process.env.CODEWORDS_API_KEY;
+  if (!apiKey) throw new Error("CODEWORDS_API_KEY is not configured");
+
+  const baseUrl = process.env.CODEWORDS_URL || DEFAULT_CODEWORDS_URL;
+  const res = await fetch(`${baseUrl}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  });
+
+  const body = await res.json().catch(async () => ({ error: await res.text().catch(() => "") }));
+  if (!res.ok) {
+    throw new Error(body?.error || body?.message || `CodeWords request failed (${res.status})`);
+  }
+  return normalizeJob(body);
+}
+
+const supabaseQueueProvider: VideoProvider = {
   async submit(payload) {
+    if (process.env.CODEWORDS_API_KEY) {
+      return callCodewords("", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+    }
+
     const { data, error } = await supabaseAdmin
       .from("video_jobs")
       .insert({
@@ -52,6 +93,10 @@ const stubProvider: VideoProvider = {
   },
 
   async status(jobId) {
+    if (process.env.CODEWORDS_API_KEY) {
+      return callCodewords(`/jobs/${encodeURIComponent(jobId)}`);
+    }
+
     const { data: row, error } = await supabaseAdmin
       .from("video_jobs")
       .select("*")
@@ -69,41 +114,8 @@ const stubProvider: VideoProvider = {
         error: "Unknown job id",
       };
     }
-
-    // Already finished — return persisted state.
-    if (row.status === "completed" || row.status === "failed") {
-      return rowToJob(row);
-    }
-
-    // Simulate progress based on created_at, persist updates.
-    const elapsed = Date.now() - new Date(row.created_at).getTime();
-    const pct = Math.min(100, Math.round((elapsed / STUB_DURATION_MS) * 100));
-
-    const patch: Record<string, any> =
-      pct < 100
-        ? {
-            status: pct < 15 ? "uploading" : "processing",
-            progress: pct,
-          }
-        : {
-            status: "completed",
-            progress: 100,
-            video_url:
-              "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-            thumbnail_url:
-              "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
-            duration_seconds: 30,
-          };
-
-    const { data: updated, error: updErr } = await supabaseAdmin
-      .from("video_jobs")
-      .update(patch)
-      .eq("id", jobId)
-      .select()
-      .single();
-    if (updErr) throw new Error(updErr.message);
-    return rowToJob(updated);
+    return rowToJob(row);
   },
 };
 
-export const provider: VideoProvider = stubProvider;
+export const provider: VideoProvider = supabaseQueueProvider;
