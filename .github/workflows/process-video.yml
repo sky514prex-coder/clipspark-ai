@@ -1,0 +1,47 @@
+name: Process TikTok Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:         { required: true,  type: string }
+      tiktok_url:     { required: true,  type: string }
+      color_grading:  { required: false, type: string, default: '65' }
+      motion_zoom:    { required: false, type: string, default: '40' }
+      beat_sync:      { required: false, type: string, default: 'true' }
+      auto_subtitles: { required: false, type: string, default: 'true' }
+      subtitle_style: { required: false, type: string, default: 'viral' }
+      watermark:      { required: false, type: string, default: 'false' }
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: pip install --quiet yt-dlp faster-whisper numpy Pillow librosa supabase
+
+      - name: Process video
+        env:
+          JOB_ID:                ${{ inputs.job_id }}
+          TIKTOK_URL:            ${{ inputs.tiktok_url }}
+          COLOR_GRADING:         ${{ inputs.color_grading }}
+          MOTION_ZOOM:           ${{ inputs.motion_zoom }}
+          BEAT_SYNC:             ${{ inputs.beat_sync }}
+          AUTO_SUBTITLES:        ${{ inputs.auto_subtitles }}
+          SUBTITLE_STYLE:        ${{ inputs.subtitle_style }}
+          WATERMARK:             ${{ inputs.watermark }}
+          SUPABASE_URL:          ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/process_video.py
